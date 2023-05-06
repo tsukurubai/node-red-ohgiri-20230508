@@ -1,0 +1,568 @@
+[
+    {
+        "id": "373ee798bfe87357",
+        "type": "tab",
+        "label": "どこおると？",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "923137aec2750d53",
+        "type": "sensor subscribe",
+        "z": "373ee798bfe87357",
+        "sensor": "geolocation",
+        "freq": "5000",
+        "name": "GPS起動",
+        "x": 480,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f5813e1215d482d3",
+        "type": "sensor unsubscribe",
+        "z": "373ee798bfe87357",
+        "sensor": "geolocation",
+        "name": "GPS停止",
+        "x": 300,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f2cdadc3b997ab2c",
+        "type": "location",
+        "z": "373ee798bfe87357",
+        "name": "GPSデータ取得",
+        "x": 120,
+        "y": 260,
+        "wires": [
+            [
+                "41797b338dca04b6"
+            ]
+        ]
+    },
+    {
+        "id": "8bd8d69769624387",
+        "type": "function",
+        "z": "373ee798bfe87357",
+        "name": "距離計算",
+        "func": "const lat1 = flow.get('lat1') || 0;\nconst lon1 = flow.get('lon1') || 0;\nconst lat2 = flow.get('lat2') || 0;\nconst lon2 = flow.get('lon2') || 0;\nconst distance = calcDistance(lat1, lon1, lat2, lon2) * 1000;  // Distance in m\nmsg.payload = Math.round(distance);\nreturn msg;\n\n///////////////////////////////////////////////////////\nfunction calcDistance(lat1, lon1, lat2, lon2) {\n    const R = 6371; // Radius of the earth in km\n    const dLat = deg2rad(lat2 - lat1);\n    const dLon = deg2rad(lon2 - lon1);\n    const a =\n        Math.sin(dLat / 2) * Math.sin(dLat / 2) +\n        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *\n        Math.sin(dLon / 2) * Math.sin(dLon / 2)\n        ;\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    const distance = R * c; // Distance in km\n    return distance;\n}\n\nfunction deg2rad(deg) {\n    return deg * (Math.PI / 180)\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 520,
+        "wires": [
+            [
+                "6d2b084875ae5147",
+                "03de5f43d9b90c87"
+            ]
+        ]
+    },
+    {
+        "id": "608ad773e3c56f10",
+        "type": "mqtt in",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "topic": "oruto",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e5a03826e3c63b1f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 90,
+        "y": 400,
+        "wires": [
+            [
+                "b30cbb6f7849bb38"
+            ]
+        ]
+    },
+    {
+        "id": "519ee08cb2ddbc7e",
+        "type": "beep",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "x": 570,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a63772cd12aa3aa4",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "初期化",
+        "info": "",
+        "x": 70,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "2591dc20429504cd",
+        "type": "mqtt out",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "topic": "oruto",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e5a03826e3c63b1f",
+        "x": 570,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "41797b338dca04b6",
+        "type": "function",
+        "z": "373ee798bfe87357",
+        "name": "緯度経度抽出（自分）",
+        "func": "if (flow.get(\"id1\") === undefined) {\n    flow.set(\"id1\", 999)\n}\nvar id1 = flow.get('id1');\nvar lat1 = msg.payload.latitude;\nvar lon1 = msg.payload.longitude;\n\nflow.set('id1', id1);\nflow.set('lat1', lat1);\nflow.set('lon1', lon1);\n\nmsg = {};\nmsg.payload = { \"id\": id1, \"lat\": lat1, \"lon\": lon1 };\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 260,
+        "wires": [
+            [
+                "2591dc20429504cd",
+                "c9227a2c7e0261d3"
+            ]
+        ]
+    },
+    {
+        "id": "7602617a71dd19d8",
+        "type": "template",
+        "z": "373ee798bfe87357",
+        "name": "\"おらんばい！\"",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "plain",
+        "template": "{\n    \"text\": \"おらんばい！\",\n    \"lang\": \"ja-JP\"\n}",
+        "output": "json",
+        "x": 340,
+        "y": 700,
+        "wires": [
+            [
+                "223cd5d849e24016"
+            ]
+        ]
+    },
+    {
+        "id": "223cd5d849e24016",
+        "type": "text-to-speech",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "x": 600,
+        "y": 700,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bf4f1d67aa9bf952",
+        "type": "change",
+        "z": "373ee798bfe87357",
+        "name": "1回",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "1",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 310,
+        "y": 620,
+        "wires": [
+            [
+                "519ee08cb2ddbc7e"
+            ]
+        ]
+    },
+    {
+        "id": "fd0b63b6a7bd2c27",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "アラート",
+        "info": "",
+        "x": 80,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "db7d1569612c08d8",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "自分の位置情報 ⇒ MQTTブローカー",
+        "info": "",
+        "x": 160,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "84615101d976c065",
+        "type": "start-activity",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "x": 590,
+        "y": 800,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f6352c607e2d376d",
+        "type": "function",
+        "z": "373ee798bfe87357",
+        "name": "INTENT設定",
+        "func": "var lat = flow.get('lat2') || 0;\nvar lon = flow.get('lon2') || 0;\n\nmsg.payload = {\n    \"action\": \"android.intent.action.VIEW\",\n    \"url\": \"geo:\"+lat+\",\"+lon\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 800,
+        "wires": [
+            [
+                "84615101d976c065"
+            ]
+        ]
+    },
+    {
+        "id": "0fcfbaaa3824f31c",
+        "type": "inject",
+        "z": "373ee798bfe87357",
+        "name": "地図表示",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 800,
+        "wires": [
+            [
+                "f6352c607e2d376d"
+            ]
+        ]
+    },
+    {
+        "id": "b30cbb6f7849bb38",
+        "type": "function",
+        "z": "373ee798bfe87357",
+        "name": "緯度経度記憶（相手）",
+        "func": "flow.set('id2', msg.payload.id);\nflow.set('lat2', msg.payload.lat);\nflow.set('lon2', msg.payload.lon);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "09a7935a6350841f",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "地図表示",
+        "info": "",
+        "x": 80,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "6d2b084875ae5147",
+        "type": "debug",
+        "z": "373ee798bfe87357",
+        "name": "距離表示",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "360a60f9954529e1",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "MQTTブローカー ⇒ 相手の位置情報",
+        "info": "",
+        "x": 160,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "f52f19ad3084040f",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "距離計算",
+        "info": "",
+        "x": 80,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "95439d9f23effdf5",
+        "type": "inject",
+        "z": "373ee798bfe87357",
+        "name": "5秒毎",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 520,
+        "wires": [
+            [
+                "8bd8d69769624387"
+            ]
+        ]
+    },
+    {
+        "id": "03de5f43d9b90c87",
+        "type": "switch",
+        "z": "373ee798bfe87357",
+        "name": "アラート判定",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gte",
+                "v": "5",
+                "vt": "str"
+            },
+            {
+                "t": "gte",
+                "v": "10",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 120,
+        "y": 640,
+        "wires": [
+            [
+                "bf4f1d67aa9bf952"
+            ],
+            [
+                "7602617a71dd19d8"
+            ]
+        ]
+    },
+    {
+        "id": "c1e42044b3770d67",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "5m以上",
+        "info": "",
+        "x": 290,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "8c35d317fd10c684",
+        "type": "comment",
+        "z": "373ee798bfe87357",
+        "name": "10m以上",
+        "info": "",
+        "x": 300,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "485848904f2c8398",
+        "type": "inject",
+        "z": "373ee798bfe87357",
+        "name": "テスト",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "20",
+        "payloadType": "num",
+        "x": 110,
+        "y": 700,
+        "wires": [
+            [
+                "03de5f43d9b90c87"
+            ]
+        ]
+    },
+    {
+        "id": "c97830d87dd7cf9f",
+        "type": "function",
+        "z": "373ee798bfe87357",
+        "name": "ID保存",
+        "func": "var id1 = 1;\nflow.set('id1', id1);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c9227a2c7e0261d3",
+        "type": "debug",
+        "z": "373ee798bfe87357",
+        "name": "GPSデータ",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "38652b2b9cbd3231",
+        "type": "delay",
+        "z": "373ee798bfe87357",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "3",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "923137aec2750d53"
+            ]
+        ]
+    },
+    {
+        "id": "2e32d2156f8bf3ed",
+        "type": "inject",
+        "z": "373ee798bfe87357",
+        "name": "リセット",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 100,
+        "wires": [
+            [
+                "c97830d87dd7cf9f",
+                "f5813e1215d482d3",
+                "38652b2b9cbd3231"
+            ]
+        ]
+    },
+    {
+        "id": "e5a03826e3c63b1f",
+        "type": "mqtt-broker",
+        "name": "mosquitto_test",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]
